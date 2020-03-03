@@ -1,0 +1,4 @@
+# Not include directories created by catkin_make
+/devel
+/build
+
