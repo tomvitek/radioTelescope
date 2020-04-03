@@ -50,8 +50,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  goto.msg
-  position.msg
+  cmd.msg
+  status.msg
+  verbose.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -123,10 +124,16 @@ include_directories(
 
 add_executable(mount_ctrl_node 
   src/main.cpp 
+  src/mount.cpp
   src/eqMount_real.cpp
-  src/serial.cpp)
+  src/eqMount_virtual.cpp
+  src/serial.cpp
+  src/sigMeter.cpp
+  src/sigMeter_virtual.cpp
+  src/ADS1115/Adafruit_ADS1015.cpp)
 
-target_link_libraries(mount_ctrl_node ${catkin_LIBRARIES})
+target_link_libraries(mount_ctrl_node ${catkin_LIBRARIES} wiringPi
+)
 add_dependencies(mount_ctrl_node mount_ctrl_generate_messages_cpp)
 
 ## Declare a C++ library

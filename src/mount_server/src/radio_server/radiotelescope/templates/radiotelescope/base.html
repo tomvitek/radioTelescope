@@ -1,0 +1,218 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    {% if title %}
+    <title>Radiocontrol - {{title}}</title>
+    {% else %}
+    <title>Radiocontrol</title>
+    {% endif %}
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'radiotelescope/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{% static 'radiotelescope/css/simple-sidebar.css' %}" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="{% static 'radiotelescope/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'radiotelescope/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+    <div class="d-flex" id="wrapper">
+
+        <!-- Sidebar -->
+        <div class="bg-light border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading">Radiotelescope control</div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item list-group-item-action bg-light float-left">Status: <div
+                        style="float: right;" id="sidebar_mount_status">-</div>
+                </div>
+                <div class="list-group-item list-group-item-action bg-light float-left">Position: <div
+                        class="float-right" id="sidebar_mount_pos">-
+                    </div>
+                </div>
+                <div class="list-group-item list-group-item-action bg-light">Scan progress: <div class="float-right"
+                        id="sidebar_mount_scan_progress">-</div>
+                </div>
+                <div class="list-group-item list-group-item-action bg-light">Signal strength: <div class="float-right" id="sidebar_signal_strength">-</div></div>
+            </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <button class="btn btn-primary" id="menu-toggle">Info</button>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                    data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+                        <li
+                            class="nav-item {% if request.resolver_match.url_name == 'radio_home' %} active {% endif %}">
+                            <a class="nav-link" href="{% url 'radio_home' %}">Home</a>
+                        </li>
+                        <li
+                            class="nav-item {% if request.resolver_match.url_name == 'radio_scan' %} active {% endif %}">
+                            <a class="nav-link" href="{% url 'radio_scan' %}">Scan</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Actions
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" id="nav_actions_stop" href="#">Stop</a>
+                                <a class="dropdown-item" id="nav_actions_home" href="#">Home</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" id="nav_actions_reboot" href="#">Reboot</a>
+                                <a class="dropdown-item" id="nav_actions_poweroff" href="#">Power off</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="container-fluid">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- Menu Toggle Script -->
+    <script>
+        $("#menu-toggle").click(function (e) {
+            e.preventDefault();
+            $("#wrapper").toggleClass("toggled");
+        });
+    </script>
+
+    <!-- Telescope status side bar update -->
+    <script>
+        function updateTelescopeStatus() {
+            const STATUS_DISCONNECTED = "0";
+            const STATUS_CONNECTED = "1";
+            const STATUS_GOTO = "2";
+            const STATUS_MOVING = "3";
+            const STATUS_TRACKING = "4";
+            const STATUS_SCANNING = "5";
+            const STATUS_HOMING = "6";
+            const STATUS_STOPPED = "7";
+
+            const http = new XMLHttpRequest();
+            const url = "{% url 'radio_request_status' %}";
+            http.open("GET", url);
+            http.timeout = 1000;
+            http.send();
+            http.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var params = this.responseText.split(' ');
+                    var statusText = document.getElementById("sidebar_mount_status")
+                    switch (params[0]) {
+                        case STATUS_DISCONNECTED:
+                            statusText.innerText = "Disconnected";
+                            statusText.classList = "text-danger";
+                            break;
+                        case STATUS_CONNECTED:
+                            statusText.innerText = "Connected";
+                            statusText.classList = "text-success";
+                            break;
+                        case STATUS_GOTO:
+                            statusText.innerText = "GOTO runnning";
+                            statusText.classList = "text-warning";
+                            break;
+                        case STATUS_MOVING:
+                            statusText.innerText = "Moving";
+                            statusText.classList = "text-warning";
+                            break;
+                        case STATUS_TRACKING:
+                            statusText.innerText = "Tracking";
+                            statusText.classList = "text-success";
+                            break;
+                        case STATUS_SCANNING:
+                            statusText.innerText = "Scanning";
+                            statusText.classList = "text-warning";
+                            break;
+                        case STATUS_HOMING:
+                            statusText.innerText = "Homing";
+                            statusText.classList = "text-warning";
+                            break;
+                        case STATUS_STOPPED:
+                            statusText.innerText = "Stopped";
+                            statusText.classList = "text-success";
+                            break;
+                    }
+                    var hr = parseFloat(params[1]);
+                    var dec = parseFloat(params[2]);
+                    if (params[0] == STATUS_DISCONNECTED) // If mount is disconnected, don't show position at all
+                        document.getElementById("sidebar_mount_pos").innerText = "HR: - \nDEC: -";
+                    else
+                        document.getElementById("sidebar_mount_pos").innerText = "HR: " + Math.trunc(hr / 360 * 24).toString() + "h " + Math.round((hr / 360 * 24 - Math.trunc(hr / 360 * 24)) * 60).toString() + "min" + "\nDEC: " + Math.trunc(dec).toString() + "\xB0 " + Math.round((dec - Math.trunc(dec)) * 60) + "\'";
+                    if (params[0] == STATUS_SCANNING) // If mount is currently in scanning mode, print scan's progress
+                        document.getElementById("sidebar_mount_scan_progress").innerText = params[3] + "%";
+                    else
+                        document.getElementById("sidebar_mount_scan_progress").innerText = "-";
+                    document.getElementById("sidebar_signal_strength").innerText = params[4];
+                }
+            }
+        }
+        updateTelescopeStatus();
+        setInterval(updateTelescopeStatus, 1000);
+    </script>
+
+    <!-- Actions script -->
+    <script>
+        // Stop action
+        $('#nav_actions_stop').on('click', function (event) {
+            $.ajax({
+                url: "{% url 'radio_cmd_stop' %}",
+                method: "POST",
+                success: function (json) {
+                    console.log("Stop success");
+                },
+                error: function (json) {
+                    console.log("Stop error");
+                }
+            })
+        });
+
+        // Home action
+        $('#nav_actions_home').on('click', function (event) {
+            $.ajax({
+                url: "{% url 'radio_cmd_home' %}",
+                method: "POST",
+                success: function (json) {
+                    console.log("Stop success");
+                },
+                error: function (json) {
+                    console.log("Stop error");
+                }
+            })
+        });
+    </script>
+
+    <script src="{% static 'radiotelescope/scripts/main.js' %}"></script>
+
+</body>
+
+</html>

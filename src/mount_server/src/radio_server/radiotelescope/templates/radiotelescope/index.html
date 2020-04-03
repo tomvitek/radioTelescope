@@ -1,0 +1,46 @@
+{% extends 'radiotelescope/base.html' %}
+
+{% block content %}
+
+{% load filters %}
+
+<h1 class="display-4 text-center">Home</h1>
+<div class="text-center">Scanning and other stuff coming soon...</div>
+<div class="h3">GOTO request</div>
+<form class="form" id="goto_form" method="POST" action="{% url 'radio_cmd_goto' %}">
+    {% csrf_token %}
+    <div class="form-row">
+        <div class="col-lg-5 mb-3">
+            <label for="goto_form_hr">Hour angle:</label>
+            <input type="number" class="form-control" placeholder="Format: DD.DDD" min="0" max="360" step="any" id="goto_form_hr" required>
+        </div>
+        <div class="col-lg-5 mb-3">
+            <label class="control-label" for="goto_form_dec">Declination</label>
+            <input type="number" class="form-control" placeholder="Format: DD.DDD" min="-90" max="90" step="any" id="goto_form_dec" required>
+        </div>
+        <button class="btn btn-primary" style="margin-top: 2em; margin-bottom: 1em;" id="btn_goto_submit">Submit</button>
+    </div>
+</form>
+
+<script>
+    // GOTO form
+    $('#goto_form').on('submit', function(event){
+        event.preventDefault();
+        console.log("GOTO_FORM: sending goto command...");
+        
+        $.ajax({
+            url : "{% url 'radio_cmd_goto' %}",
+            type : "POST",
+            data : {dec : $('#goto_form_dec').val(), hr : $('#goto_form_hr').val()},
+            success : function(json){
+                console.log("GOTO success!");
+            },
+            error : function(json){
+                console.log("GOTO error");
+            }
+        })
+    });
+</script>
+
+
+{% endblock content %}

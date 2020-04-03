@@ -1,0 +1,100 @@
+{% extends 'radiotelescope/base.html' %}
+
+{% block content %}
+
+<div class="display-4 text-center">Scan</div>
+<h2>Scan setup</h2>
+<form class="form" id="scan_form" method="POST">
+    <div class="form-row mb-3">
+        <div class="col-lg-5">
+            <label for="scan_form_resolution" >Resolution</label>
+            <input class="form-control" type="number" placeholder="sample/deg" id="scan_form_resolution" >
+        </div>
+        <div class="col-lg-5">
+            <label for="scan_form_iterations">Iterations</label>
+            <input class="form-control" type="number" placeholder="count" id="scan_form_iterations" value="1" min="1">
+        </div>
+    </div>
+    <div class="form-row mb-3">
+        <div class="col-lg-5">
+            <label for="scan_form_type">Type</label>
+            <select class="form-control" id="scan_form_type" name="type">
+                <option value="full_sky_scan">Full</option>
+                <option value="radec_sky_scan">RaDec</option>
+                <option value="altaz_sky_scan">AltAz</option>
+            </select>
+        </div>
+    </div>
+    <div id="scan_form_group_radec">
+        <div class="form-row mb-3">
+            <div class="col-lg-5">
+                <label for="scan_form_from_ra">Startpoint - RA</label>
+                <input class="form-control" type="number" placeholder="degrees" min="0" max="360" step="any" id="scan_form_from_ra">
+            </div>
+            <div class="col-lg-5">
+                <label for="scan_form_from_dec">Startpoint - DEC</label>
+                <input class="form-control" type="number" placeholder="degrees" min="-90" max="90" step="any" id="scan_form_from_dec">
+            </div>
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-lg-5">
+                <label for="scan_form_to_ra">Endpoint - RA</label>
+                <input class="form-control" type="number" placeholder="degrees" min="0" max="360" step="any" id="scan_form_to_ra">
+            </div>
+            <div class="col-lg-5">
+                <label for="scan_form_to_dec">Endpoint - DEC</label>
+                <input class="form-control" type="number" placeholder="degrees" min="-90" max="90" step="any" id="scan_form_to_dec">
+            </div>
+        </div>
+    </div>
+    <div id="scan_form_group_altaz">
+        <div class="form-row mb-3">
+            <div class="col-lg-5">
+                <label for="scan_form_from_alt">Startpoint - ALT</label>
+                <input class="form-control" type="number" placeholder="degrees" min="0" max="90" step="any" id="scan_form_from_alt">
+            </div>
+            <div class="col-lg-5">
+                <label for="scan_form_from_az">Startpoint - AZ</label>
+                <input class="form-control" type="number" placeholder="degrees" min="0" max="360" step="any" id="scan_form_from_az">
+            </div>
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-lg-5">
+                <label for="scan_form_to_alt">Endpoint - ALT</label>
+                <input class="form-control" type="number" placeholder="degrees" min="0" max="90" step="any" id="scan_form_to_alt">
+            </div>
+            <div class="col-lg-5">
+                <label for="scan_form_to_az">Endpoint - AZ</label>
+                <input class="form-control" type="number" placeholder="degrees" min="0" max="360" step="any" id="scan_form_to_az">
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-primary" id="scan_form_submit">Submit</button>
+</form>
+
+<script>
+    $("#scan_form_type").change(function(){
+        // First hide everything
+        $("#scan_form_group_radec").hide();
+        $("#scan_form_group_altaz").hide();
+        // Then show only the correct group
+        switch($("#scan_form_type").val()){
+            case "full_sky_scan":
+                break;
+            case "radec_sky_scan":
+                $("#scan_form_group_radec").show();
+                break;
+            case "altaz_sky_scan":
+                $("#scan_form_group_altaz").show();
+                break;
+        }
+    });
+
+    $(document).ready(function(){
+        // Hide custom scan settings on startup
+        $("#scan_form_group_radec").hide();
+        $("#scan_form_group_altaz").hide();
+    });
+</script>
+
+{% endblock content %}

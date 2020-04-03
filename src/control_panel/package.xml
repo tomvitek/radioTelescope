@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>mount_local_control</name>
+  <name>control_panel</name>
   <version>0.0.0</version>
   <description>The mount_local_control package</description>
 

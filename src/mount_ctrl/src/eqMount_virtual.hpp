@@ -13,13 +13,28 @@
 #define __MOUNT_CTRL_EQMOUNT_VIRTUAL
 
 #include "eqMount.hpp"
+#include <thread>
+#include <future>
 
+#define EQMOUNT_CH_RA 1
+#define EQMOUNT_CH_DEC 2
+
+enum EQMOUNT_VIRUTAL_MOUNT{
+    EQ6,
+    EQ6_R_PRO
+};
 
 class EQMount_virtual : public EQMount{
 public:
-    EQMount_virtual();
+    EQMount_virtual(EQMOUNT_VIRUTAL_MOUNT mount = EQMOUNT_VIRUTAL_MOUNT::EQ6);
     ~EQMount_virtual();
     virtual bool begin();
+
+    /**
+     * @brief Set timeout of the communication with real mount. Completely useless on a virtual one, though :)
+     * 
+     * @param timeout 
+     */
     void setTimeout(uint16_t timeout);
 
     /**
@@ -69,12 +84,44 @@ public:
 
     long getFirmwareVersion();
 private:
-    uint32_t pos_ra_raw;
-    uint32_t pos_dec_raw;
-    bool goto_running;
-    bool highspeed_running;
-    uint32_t timer_preset;
+    enum MOTION_STAT{
+        GOTO_DEC = 0x1,
+        GOTO_RA = 0x2,
+        TRACKING_RA = 0x4,
+        TRACKING_DEC = 0x8,
+        HIGHSPEED_TRACKING_RA = 0x10,
+        HIGHSPEED_TRACKING_DEC = 0x20,
+        TRACKING_RA_CCW = 0x40,
+        TRACKING_DEC_NORTH = 0x80
+    };
+    int16_t motion_stat;
+    /**
+     * @brief Simulates mount's position from latest simulated position to now
+     * 
+     */
+    void simulate();
+    /**
+     * @brief Time of latest simulated position
+     * 
+     */
+    std::chrono::steady_clock::time_point last_sim_time;
+    /**
+     * @brief Mutex for locking properties when simulating
+     * 
+     */
+    std::mutex sim_mtx;
+    int32_t pos_ra_raw;
+    int32_t pos_dec_raw;
+    int32_t goto_target_pos_ra;
+    int32_t goto_target_pos_dec;
+    int32_t goto_timer_preset;
+    bool connected = false;
+    uint32_t timer_preset_ra;
+    uint32_t timer_preset_dec;
     uint32_t timer_freq;
+    uint32_t cpr;
+    uint32_t highspeed_ratio;
+    
 };
 
 #endif
